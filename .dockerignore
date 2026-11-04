@@ -1,0 +1,7 @@
+node_modules
+frontend/node_modules
+**/__pycache__
+**/*.pyc
+work
+.git
+# 注意：不要排除 frontend/dist —— 它就是部署产物（本地构建，服务器只跑）

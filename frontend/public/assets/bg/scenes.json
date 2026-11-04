@@ -1,0 +1,260 @@
+{
+  "version": 16,
+  "default": "living",
+  "note": "超宽素材（2026-11-03）：客厅/院子 3410x1440，书房 3064x1440、卧室 2688x1344。v12 起 surfaces 定义可站立的家具顶面（拖上去松手就落在上面，走出范围掉回地面）。v16 删书房窗台（y=0.335 在窗框中段，站上去像悬空，只留书桌与小柜）。",
+  "scenes": [
+    {
+      "id": "living",
+      "name": "客厅",
+      "image": "living.webp",
+      "imageWidth": 3410,
+      "imageHeight": 1440,
+      "wallY": 0.72,
+      "standY": 0.93,
+      "walkableX": [
+        0.02,
+        0.88
+      ],
+      "exits": [
+        {
+          "x": 0.105,
+          "to": "bedroom",
+          "label": "去卧室",
+          "icon": "🛏"
+        },
+        {
+          "x": 0.724,
+          "to": "lawn",
+          "label": "去院子",
+          "icon": "🌿"
+        },
+        {
+          "x": 0.925,
+          "to": "study",
+          "label": "去书房",
+          "icon": "📚"
+        }
+      ],
+      "nightImage": "living-night.webp",
+      "rain": {
+        "windows": [
+          [
+            0.425,
+            0.1,
+            0.08,
+            0.36
+          ],
+          [
+            0.515,
+            0.1,
+            0.08,
+            0.36
+          ],
+          [
+            0.675,
+            0.11,
+            0.09,
+            0.34
+          ]
+        ]
+      },
+      "rainImage": "living-rain.webp",
+      "snowImage": "living-snow.webp",
+      "surfaces": [
+        {
+          "y": 0.604,
+          "x": [
+            0.393,
+            0.457
+          ],
+          "name": "左椅"
+        },
+        {
+          "y": 0.604,
+          "x": [
+            0.543,
+            0.607
+          ],
+          "name": "右椅"
+        },
+        {
+          "y": 0.57,
+          "x": [
+            0.455,
+            0.545
+          ],
+          "name": "圆桌"
+        }
+      ]
+    },
+    {
+      "id": "bedroom",
+      "name": "卧室",
+      "image": "bedroom.webp",
+      "imageWidth": 2880,
+      "imageHeight": 1440,
+      "wallY": 0.75,
+      "standY": 0.94,
+      "walkableX": [
+        0.03,
+        0.97
+      ],
+      "exits": [
+        {
+          "x": 0.088,
+          "to": "living",
+          "label": "回客厅",
+          "icon": "🚪"
+        }
+      ],
+      "nightImage": "bedroom-night.webp",
+      "rain": {
+        "windows": [
+          [
+            0.417,
+            0.226,
+            0.083,
+            0.277
+          ],
+          [
+            0.514,
+            0.226,
+            0.087,
+            0.277
+          ]
+        ]
+      },
+      "rainImage": "bedroom-rain.webp",
+      "snowImage": "bedroom-snow.webp",
+      "surfaces": [
+        {
+          "y": 0.62,
+          "x": [
+            0.3,
+            0.62
+          ],
+          "name": "床"
+        },
+        {
+          "y": 0.588,
+          "x": [
+            0.663,
+            0.777
+          ],
+          "name": "床头柜"
+        }
+      ]
+    },
+    {
+      "id": "study",
+      "name": "书房",
+      "image": "study.webp",
+      "imageWidth": 3064,
+      "imageHeight": 1440,
+      "wallY": 0.8,
+      "standY": 0.94,
+      "walkableX": [
+        0.02,
+        0.97
+      ],
+      "exits": [
+        {
+          "x": 0.11,
+          "to": "living",
+          "label": "回客厅",
+          "icon": "🚪"
+        }
+      ],
+      "nightImage": "study-night.webp",
+      "rain": {
+        "windows": [
+          [
+            0.448,
+            0.11,
+            0.102,
+            0.36
+          ],
+          [
+            0.56,
+            0.11,
+            0.104,
+            0.36
+          ]
+        ]
+      },
+      "rainImage": "study-rain.webp",
+      "snowImage": "study-snow.webp",
+      "surfaces": [
+        {
+          "y": 0.553,
+          "x": [
+            0.405,
+            0.66
+          ],
+          "name": "书桌"
+        },
+        {
+          "y": 0.47,
+          "x": [
+            0.745,
+            0.865
+          ],
+          "name": "小柜"
+        }
+      ]
+    },
+    {
+      "id": "lawn",
+      "name": "院子",
+      "image": "lawn.webp",
+      "imageWidth": 3410,
+      "imageHeight": 1440,
+      "wallY": 0.556,
+      "standY": 0.92,
+      "walkableX": [
+        0.02,
+        0.98
+      ],
+      "exits": [
+        {
+          "x": 0.676,
+          "to": "living",
+          "label": "回家",
+          "icon": "🏠"
+        }
+      ],
+      "nightImage": "lawn-night.webp",
+      "rain": {
+        "windows": [
+          [
+            0,
+            0,
+            1,
+            1
+          ]
+        ],
+        "ground": 0.93
+      },
+      "rainImage": "lawn-rain.webp",
+      "snowImage": "lawn-snow.webp",
+      "surfaces": [
+        {
+          "y": 0.36,
+          "x": [
+            0.66,
+            0.79
+          ],
+          "name": "屋顶"
+        },
+        {
+          "y": 0.35,
+          "x": [
+            0.08,
+            0.24
+          ],
+          "name": "树冠"
+        }
+      ]
+    }
+  ]
+}

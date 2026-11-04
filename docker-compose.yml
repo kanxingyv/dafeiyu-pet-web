@@ -1,0 +1,20 @@
+# 大肥鱼网页端 · 独立容器
+# 刻意不碰 astrbot / napcat / nginx / kkl-archive：这是一个纯新增服务。
+services:
+  dafeiyu-web:
+    build: .
+    image: dafeiyu-web:latest
+    container_name: dafeiyu-web
+    restart: unless-stopped
+    ports:
+      - '8765:8765'
+    environment:
+      # 留空 = 不校验（内网/调试）；线上建议设一个口令，避免陌生人也能指挥她
+      DAFEIYU_WEB_TOKEN: ${DAFEIYU_WEB_TOKEN:-}
+    # 服务器可用内存只有 1 GB，这里硬性封顶，OOM 也只杀自己
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'

@@ -1,0 +1,18 @@
+# 依赖 / 构建产物
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+__pycache__/
+*.py[cod]
+
+# iOS 用的 HEVC-alpha 素材（≈80 MB，不进仓库；用 scripts/fetch-mov.sh 拉）
+frontend/public/assets/anim-mov/
+
+# 本地临时
+work/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.local

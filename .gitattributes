@@ -1,0 +1,11 @@
+# 二进制素材：别让 git 试图 diff 它们
+*.webm binary
+*.mov  binary
+*.png  binary
+*.webp binary
+*.jpg  binary
+*.mp3  binary
+*.wav  binary
+
+# 锁文件：合并冲突时以一侧为准，别手改
+package-lock.json merge=binary -diff
