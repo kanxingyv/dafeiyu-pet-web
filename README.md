@@ -7,6 +7,8 @@
 
 **这不是 DeepSeek 官方项目。** 角色「大肥鱼」（鲸鱼娘）是社区二创形象，详见 [素材与许可](#素材与许可)。
 
+仓库：<https://github.com/kanxingyv/dafeiyu-pet-web> · 许可：代码 MIT，**素材禁止商用**（见下方 [素材与许可](#素材与许可)）
+
 ---
 
 ## 它长什么样
@@ -24,6 +26,16 @@
 | 别的程序调她 | `POST /api/act?name=吃白饭`、`POST /api/say?image=可爱` |
 
 ---
+
+## 获取代码
+
+```bash
+git clone https://github.com/kanxingyv/dafeiyu-pet-web.git
+cd dafeiyu-pet-web
+```
+
+> 仓库不含 iOS 回落素材（`anim-mov/`，约 80MB）。需要的话跑 `scripts/fetch-mov.sh`，
+> 它会把同名 `.mov` 拉到 `frontend/public/assets/anim-mov/`；不跑也不影响桌面浏览器。
 
 ## 快速开始
 
