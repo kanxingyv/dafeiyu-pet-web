@@ -9,6 +9,10 @@ __pycache__/
 # iOS 用的 HEVC-alpha 素材（≈80 MB，不进仓库；用 scripts/fetch-mov.sh 拉）
 frontend/public/assets/anim-mov/
 
+# 高清版素材包（≈285 MB，不进仓库；见 README「高清版素材」一节）
+hd-pkg/
+frontend/dist/hd/
+
 # 本地临时
 work/
 *.log

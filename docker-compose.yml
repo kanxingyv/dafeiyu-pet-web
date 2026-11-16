@@ -13,6 +13,11 @@ services:
       DAFEIYU_WEB_TOKEN: ${DAFEIYU_WEB_TOKEN:-}
     # 服务器可用内存只有 1 GB，这里硬性封顶，OOM 也只杀自己
     mem_limit: 256m
+    # 高清版（/hd）：只读挂载一个独立子目录，根路径与普通版内容不受影响。
+    # 素材不在本仓库（约 285 MB），没有这个目录时 /hd 直接 404，普通版照常。
+    # 换高清素材只替换这个目录即可，不用重建镜像、不用重启容器。
+    volumes:
+      - ./hd-pkg:/app/frontend/dist/hd:ro
     logging:
       driver: json-file
       options:

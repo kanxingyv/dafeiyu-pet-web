@@ -13,6 +13,24 @@
 
 ---
 
+## 在线看
+
+| 版本 | 地址 | 说明 |
+|---|---|---|
+| **普通版** | **<https://dafeiyu.kkl.ltd/>** | 109 段动画，约 56 MB。手机流量、日常看用这个 |
+| **高清版** | **<https://dafeiyu.kkl.ltd/hd/>** | 同样 109 段动画，画面更清晰，素材约 285 MB。**同一个子域名，用路径区分** |
+
+两个版本是**同一个后端、同一个子域名**，只是静态素材目录不同；`/api` 与 `/ws` 两版共用，
+所以手机开普通版、电脑开高清版，两边看到的仍是同一只角色做同一个动作。
+
+> **高清版到底高清在哪**：只有 **109 段动画视频**换成了高码率版（逐段都更大，实测 109/109 段不同）。
+> **4 张房间背景和 27 张表情两版是同一份文件**（md5 一致），所以高清版不会让背景更清晰。
+> 高清素材包不在本仓库（太大），见下方 [高清版素材](#高清版素材不进仓库)。
+
+站点的 HTTPS、证书与反向代理怎么配，见 [线上部署](#线上部署域名--https)。
+
+---
+
 ## 它长什么样
 
 打开页面就是一间房：角色自己待机、随机做动作（玩魔方、吃火锅、跳舞、打瞌睡……），
@@ -115,6 +133,16 @@ FastAPI（单进程、无数据库、状态全在内存）
 | GET | `/api/manifest` | 完整动作清单 |
 | WS | `/ws` | 多端同步 |
 
+静态页面：
+
+| 路径 | 说明 |
+|---|---|
+| `/` | 普通版页面 |
+| `/hd` | 308 → `/hd/`（斜杠必须补，否则相对路径的素材会指到根目录） |
+| `/hd/` | 高清版页面（`hd-pkg/` 存在时才注册，否则落到普通版 SPA 兜底） |
+
+两版的 `/api` 与 `/ws` 是同一套，所以可以一边开普通版、一边开高清版，动作同步。
+
 ```jsonc
 { "type": "act",   "name": "吃白饭", "facing": "left" }
 { "type": "say",   "text": "主人回来啦", "image": "可爱", "holdMs": 3000 }
@@ -189,9 +217,12 @@ python scripts/make_action.py 午后打盹 哈欠连天 原地小憩沉眠 打�
 │   └── fetch-mov.sh             拉 iOS 用的 HEVC-alpha .mov（≈80 MB，不进 git）
 ├── assets/config.mine.jsonc     动作分类 / 权重 / 表情配置
 ├── client.py                    给脚本 / 机器人用的 Python 客户端
+├── deploy/nginx-dafeiyu.conf    nginx 反代模板（域名 + HTTPS，两版同域名）
 ├── docs/DESIGN.md               设计说明与踩坑记录
 ├── Dockerfile
 └── docker-compose.yml
+
+hd-pkg/                          ← 高清版素材（≈285 MB，不进仓库，见「高清版素材」一节）
 ```
 
 `.mov` 素材（iOS 用）体积大，**不进仓库**，需要时：
@@ -201,6 +232,81 @@ bash scripts/fetch-mov.sh
 ```
 
 没有 `.mov` 也能跑：Safari 会回落到 webm，动作正常，只是透明通道变成黑底。
+
+---
+
+## 高清版素材（不进仓库）
+
+`/hd/` 那套高清动画**不在本仓库**（约 285 MB，GitHub 单仓库放不下也不该放）。
+后端对 `/hd` 的处理是「读一个独立子目录」，所以只要把素材放到那个位置就行：
+
+```
+你的部署目录/
+├── frontend/dist/          ← 普通版（npm run build 的产物，进 Docker 镜像）
+└── hd-pkg/                 ← 高清版（只读挂载进容器 /app/frontend/dist/hd）
+    ├── index.html
+    └── assets/{anim,memes,bg,manifest.json,filename-map.json}
+```
+
+`docker-compose.yml` 里对应这一行：
+
+```yaml
+volumes:
+  - ./hd-pkg:/app/frontend/dist/hd:ro
+```
+
+`hd-pkg/` 是**挂载**而不是 COPY 进镜像，所以换高清素材只要替换这个目录，
+**不用重建镜像、不用重启容器**（后端对 `/hd` 强制 `no-cache`，浏览器不会继续用旧素材）。
+
+⚠️ **没有 `hd-pkg/` 时 `/hd` 不会 404**：`hd/` 下没有 `index.html` 时后端的 `/hd` 路由不注册，
+请求会落到普通版的 SPA 兜底，**返回一个 200 的普通版页面** —— 比 404 更容易骗人
+（看着能开，其实是普通版画质）。部署完一定要确认 `/hd/` 加载的是高清素材，别只看「打得开」。
+
+要自己做一套高清素材，把每段 webm 换成更高分辨率的同名文件即可
+（文件名、`manifest.json`、`filename-map.json` 都不用改）。
+
+> ⚠️ 高清包只有 `.webm` 没有 iOS 用的 `.mov`，所以 **iPhone 上看高清版会是黑底**
+> （能播、动作正常，只是透明通道丢失）。要修就得同样做一套 HEVC-alpha 的 `.mov`。
+
+---
+
+## 线上部署（域名 + HTTPS）
+
+项目本身只起 HTTP。线上是外面套一层 nginx 终止 TLS 再反代到容器，两版同一个域名：
+
+```
+https://dafeiyu.kkl.ltd/       → 127.0.0.1:8765/      普通版      ← 本项目线上实例
+https://dafeiyu.kkl.ltd/hd/    → 127.0.0.1:8765/hd/   高清版
+http://  任意路径               → 301 跳 https
+```
+
+自己部署就是把域名换成你的，路由关系不用变。完整可改的配置模板在
+[`deploy/nginx-dafeiyu.conf`](deploy/nginx-dafeiyu.conf)，改三处（`server_name`、证书路径、日志路径）即可：
+
+```bash
+sudo cp deploy/nginx-dafeiyu.conf /etc/nginx/sites-available/dafeiyu
+sudo ln -s /etc/nginx/sites-available/dafeiyu /etc/nginx/sites-enabled/dafeiyu
+sudo nginx -t && sudo systemctl reload nginx      # 用 reload，别用 restart
+```
+
+那份配置里**有四件事不能省**，少了会出看起来像「站点坏了」的怪问题：
+
+| 配置 | 不加会怎样 |
+|---|---|
+| `location = /ws` 给 `proxy_read_timeout 3600s` | 默认 60s，空闲 WebSocket 被掐，前端表现成「一直重连」 |
+| `.webm` / `.mov` 单独 `location` + `proxy_buffering off` | 视频走缓冲后拖动/切段变卡；还要保证 `Range` 请求仍返回 206 |
+| 显式 `gzip_types` | 很多发行版的 nginx 默认只压 `text/html`，`index-*.js`（约 498 KB）会原样明文下发 |
+| `proxy_max_temp_file_size 0` + `proxy_buffers 8 32k` | 开了 gzip 就必须先读全再压，默认缓冲区太小会落临时文件，小磁盘机器上白吃 IO |
+
+> `/hd` **结尾的斜杠不能少**。`index.html` 里全是 `./assets/...` 相对路径，
+> 访问 `/hd`（无斜杠）浏览器会去根路径的 `/assets/` 拿素材 —— 页面能开，但**静默加载成普通版**。
+> 后端对 `/hd` 返回 308 跳到 `/hd/`，前置代理别把这个跳转吃掉。
+
+证书用通配符（如 `*.example.com`）最省事，加子域名不用重签。
+Let's Encrypt 的通配符证书只能走 DNS-01 验证，需要 DNS 服务商 API 权限。
+
+证书用的是通配符 `*.kkl.ltd`（Let's Encrypt，DNS-01 自动续期），
+所以**加别的子域名不用重签证书**。
 
 ---
 
@@ -278,8 +384,9 @@ node scripts/verify-memes.mjs    http://127.0.0.1:5173                   # 表�
 
 ## 已知限制
 
-- **无 HTTPS**：默认走 `http://IP:8765`。要接麦克风（浏览器强制安全上下文）必须上域名 + 证书。
-- **iOS 透明依赖 `.mov`**：Safari 不认 VP9 webm 的 alpha 通道。
+- **HTTPS 要自己配**：项目本身只起 HTTP（容器内 `8765`）。线上是外面套 nginx 终止 TLS 再反代，
+  见 [线上部署](#线上部署域名--https)。不配也能跑，只是浏览器不认为是安全上下文（麦克风之类用不了）。
+- **iOS 透明依赖 `.mov`**：Safari 不认 VP9 webm 的 alpha 通道。高清版没有 `.mov`，iPhone 上会是黑底。
 - **没有前后遮挡**：角色走到柜子/植物前会和家具叠在一起，要做得给背景加前景层。
 - **左右跑是镜像**：围裙上的小鲸鱼会左右反过来。
 - **动作是视频不是 Live2D**：做不了「眼睛跟随鼠标」这类骨骼级联动。

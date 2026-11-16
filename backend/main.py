@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -102,6 +102,19 @@ class Hub:
 
 hub = Hub()
 app = FastAPI(title="大肥鱼 · 在家", docs_url="/api/docs", openapi_url="/api/openapi.json")
+
+
+@app.middleware("http")
+async def hd_no_cache(request: Request, call_next):
+    """高清版目录强制每次协商缓存，避免换包后浏览器仍拿旧的 webm。
+
+    hd-pkg 是挂载目录，换素材时文件名不变（a001.webm 还是 a001.webm），
+    如果放长缓存，用户换包后还会看几天前的旧视频。
+    """
+    resp = await call_next(request)
+    if request.url.path.startswith("/hd"):
+        resp.headers["Cache-Control"] = "no-cache, must-revalidate"
+    return resp
 
 
 def check_token(token: str | None) -> None:
@@ -231,6 +244,23 @@ async def ws_endpoint(ws: WebSocket) -> None:
         pass
     finally:
         await hub.leave(ws)
+
+
+# ── 高清版（/hd）：独立目录，纯新增，不影响根路径 ─────
+# 素材不放仓库（约 285 MB），见 docker-compose.yml 的 hd-pkg 挂载。
+# 没有这个目录时下面两个路由不注册，/hd 会落到普通版的 SPA 兜底。
+HD = DIST / "hd"
+if (HD / "index.html").exists():
+
+    @app.get("/hd")
+    async def hd_redirect() -> RedirectResponse:
+        # 必须带斜杠：index.html 里是 ./assets/... 的相对路径，
+        # 访问 /hd（无斜杠）会被浏览器解析成根路径的 /assets，加载错包。
+        return RedirectResponse(url="/hd/", status_code=308)
+
+    @app.get("/hd/")
+    async def hd_index() -> FileResponse:
+        return FileResponse(HD / "index.html")
 
 
 # ── 静态文件（必须放最后，否则会吃掉 /api） ─────────────
